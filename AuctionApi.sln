@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36623.8 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuctionApi", "AuctionApi\AuctionApi.csproj", "{4F491C25-042A-43A6-BFD5-2160C202B376}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4F491C25-042A-43A6-BFD5-2160C202B376}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F491C25-042A-43A6-BFD5-2160C202B376}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F491C25-042A-43A6-BFD5-2160C202B376}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F491C25-042A-43A6-BFD5-2160C202B376}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DD139D88-1005-4B20-8AD7-56E8A8A6B1D1}
+	EndGlobalSection
+EndGlobal
