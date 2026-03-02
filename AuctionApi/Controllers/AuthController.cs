@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
 namespace AuctionApi.Controllers;
@@ -71,7 +72,37 @@ public class AuthController : ControllerBase
         var token = CreateToken(user);
         return Ok(new { user.Id, user.Name, user.Email, token });
     }
+    public record ChangePasswordDto(string CurrentPassword, string NewPassword);
+    [Authorize]
+    [HttpPut("password")]
+    public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.CurrentPassword))
+            return BadRequest("CurrentPassword is required.");
+        if (string.IsNullOrWhiteSpace(dto.NewPassword))
+            return BadRequest("NewPassword is required.");
+        if (dto.NewPassword.Length < 6)
+            return BadRequest("New password must be at least 6 characters.");
 
+        // UserId from JWT token
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+        
+        var userId = int.Parse(userIdStr);
+        var user = await _db.Users.FindAsync(userId);
+        if (user == null) return NotFound("User not found.");
+        if (!user.IsActive) return Unauthorized("Account is disabled.");
+        // Verify current password
+        var currentHash = Hash(dto.CurrentPassword);
+        if (user.PasswordHash != currentHash)
+            return Unauthorized("Current password is incorrect.");
+        // Update password (Name is NOT changed here)
+        user.PasswordHash = Hash(dto.NewPassword);
+        await _db.SaveChangesAsync();
+
+        return NoContent();
+
+    }
     private static string Hash(string input)
     {
         using var sha = SHA256.Create();
@@ -103,6 +134,7 @@ public class AuthController : ControllerBase
             expires: DateTime.UtcNow.AddMinutes(expiresMinutes),
             signingCredentials: creds
         );
+
 
         return new JwtSecurityTokenHandler().WriteToken(jwt);
     }
