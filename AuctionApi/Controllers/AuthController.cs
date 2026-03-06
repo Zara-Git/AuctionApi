@@ -1,12 +1,6 @@
-﻿using AuctionApi.Data;
-using AuctionApi.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using System.Text;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
+﻿using AuctionApi.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace AuctionApi.Controllers;
@@ -15,128 +9,79 @@ namespace AuctionApi.Controllers;
 [Route("api/auth")]
 public class AuthController : ControllerBase
 {
-    private readonly AuctionDbContext _db;
-    private readonly IConfiguration _config;
+    private readonly IAuthService _authService;
 
-    public AuthController(AuctionDbContext db, IConfiguration config)
+    public AuthController(IAuthService authService)
     {
-        _db = db;
-        _config = config;
+        _authService = authService;
     }
 
     public record RegisterDto(string Name, string Email, string Password);
     public record LoginDto(string Email, string Password);
+    public record ChangePasswordDto(string CurrentPassword, string NewPassword);
 
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Name)) return BadRequest("Name is required.");
-        if (string.IsNullOrWhiteSpace(dto.Email)) return BadRequest("Email is required.");
-        if (string.IsNullOrWhiteSpace(dto.Password)) return BadRequest("Password is required.");
-
-        var email = dto.Email.Trim().ToLower();
-
-        var exists = await _db.Users.AnyAsync(u => u.Email.ToLower() == email);
-        if (exists) return BadRequest("Email already exists.");
-
-        var user = new User
+        try
         {
-            Name = dto.Name.Trim(),
-            Email = email,
-            PasswordHash = Hash(dto.Password),
-            IsActive = true
-        };
-
-        _db.Users.Add(user);
-        await _db.SaveChangesAsync();
-
-        return Ok(new { user.Id, user.Name, user.Email });
+            var result = await _authService.RegisterAsync(dto.Name, dto.Email, dto.Password);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
+
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Email)) return BadRequest("Email is required.");
-        if (string.IsNullOrWhiteSpace(dto.Password)) return BadRequest("Password is required.");
-
-        var email = dto.Email.Trim().ToLower();
-
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email);
-        if (user == null) return Unauthorized("Invalid email or password.");
-
-        if (!user.IsActive) return Unauthorized("Account is disabled.");
-
-        var hash = Hash(dto.Password);
-        if (user.PasswordHash != hash)
-            return Unauthorized("Invalid email or password.");
-
-        var token = CreateToken(user);
-        return Ok(new { user.Id, user.Name, user.Email, token });
+        try
+        {
+            var result = await _authService.LoginAsync(dto.Email, dto.Password);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
     }
-    public record ChangePasswordDto(string CurrentPassword, string NewPassword);
+
     [Authorize]
     [HttpPut("password")]
     public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.CurrentPassword))
-            return BadRequest("CurrentPassword is required.");
-        if (string.IsNullOrWhiteSpace(dto.NewPassword))
-            return BadRequest("NewPassword is required.");
-        if (dto.NewPassword.Length < 6)
-            return BadRequest("New password must be at least 6 characters.");
+        try
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr))
+                return Unauthorized();
 
-        // UserId from JWT token
-        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
-        
-        var userId = int.Parse(userIdStr);
-        var user = await _db.Users.FindAsync(userId);
-        if (user == null) return NotFound("User not found.");
-        if (!user.IsActive) return Unauthorized("Account is disabled.");
-        // Verify current password
-        var currentHash = Hash(dto.CurrentPassword);
-        if (user.PasswordHash != currentHash)
-            return Unauthorized("Current password is incorrect.");
-        // Update password (Name is NOT changed here)
-        user.PasswordHash = Hash(dto.NewPassword);
-        await _db.SaveChangesAsync();
+            var userId = int.Parse(userIdStr);
 
-        return NoContent();
-
+            await _authService.ChangePasswordAsync(userId, dto.CurrentPassword, dto.NewPassword);
+            return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return NotFound(ex.Message);
+        }
     }
-    private static string Hash(string input)
-    {
-        using var sha = SHA256.Create();
-        var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(input));
-        return Convert.ToHexString(bytes); 
-    }
-    private string CreateToken(User user)
-    {
-        var key = _config["Jwt:Key"]!;
-        var issuer = _config["Jwt:Issuer"]!;
-        var audience = _config["Jwt:Audience"]!;
-        var expiresMinutes = int.Parse(_config["Jwt:ExpiresMinutes"] ?? "120");
-
-        var claims = new List<Claim>
-    {
-        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-        new Claim(ClaimTypes.Name, user.Name),
-        new Claim(ClaimTypes.Email, user.Email),
-        new Claim(ClaimTypes.Role, user.IsAdmin ? "Admin" : "User"),
-    };
-
-        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
-        var creds = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
-
-        var jwt = new JwtSecurityToken(
-            issuer: issuer,
-            audience: audience,
-            claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(expiresMinutes),
-            signingCredentials: creds
-        );
-
-
-        return new JwtSecurityTokenHandler().WriteToken(jwt);
-    }
-
 }
