@@ -1,0 +1,288 @@
+* {
+  box-sizing: border-box;
+}
+
+.auctions-page {
+  min-height: 100vh;
+  background: #f6f7fb;
+  padding: 24px 16px;
+}
+
+.auctions-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.auctions-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  border: 1px solid #ececec;
+}
+
+.auctions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.auctions-header h2 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.auctions-header p {
+  margin: 8px 0 0;
+  color: #6b7280;
+  font-size: 15px;
+}
+
+.search-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.auction-input {
+  width: 100%;
+  min-width: 0;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  font-size: 15px;
+  outline: none;
+  background: #fff;
+}
+
+.search-row .auction-input {
+  flex: 1;
+  min-width: 240px;
+}
+
+.auction-input:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.auction-textarea {
+  resize: vertical;
+}
+
+.primary-btn,
+.dark-btn,
+.success-btn,
+.secondary-btn {
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+  border: none;
+}
+
+.primary-btn {
+  background: #4f46e5;
+  color: #fff;
+}
+
+.dark-btn {
+  background: #111827;
+  color: #fff;
+}
+
+.success-btn {
+  background: #10b981;
+  color: #fff;
+}
+
+.secondary-btn {
+  background: #fff;
+  color: #111827;
+  border: 1px solid #d1d5db;
+}
+
+.primary-btn:hover,
+.dark-btn:hover,
+.success-btn:hover {
+  opacity: 0.92;
+}
+
+.secondary-btn:hover {
+  background: #f9fafb;
+}
+
+.info-message,
+.error-message,
+.success-message,
+.empty-state {
+  margin-bottom: 16px;
+  padding: 14px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.info-message {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.error-message {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.success-message {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.empty-state {
+  background: #f9fafb;
+  color: #6b7280;
+  text-align: center;
+}
+
+.create-auction-form {
+  margin-bottom: 24px;
+  padding: 20px;
+  border-radius: 18px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  display: grid;
+  gap: 14px;
+}
+
+.create-auction-form h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.date-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.date-grid label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.loading-text {
+  color: #6b7280;
+}
+
+.auctions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.auction-item-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  padding: 18px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.auction-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.auction-title {
+  font-weight: 800;
+  font-size: 20px;
+  color: #111827;
+}
+
+.status-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.status-badge.open {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.status-badge.closed {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.seller-name {
+  color: #6b7280;
+  margin-bottom: 10px;
+}
+
+.auction-description {
+  color: #374151;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+.auction-meta {
+  display: grid;
+  gap: 8px;
+  font-size: 15px;
+}
+
+.auction-meta span {
+  font-weight: 700;
+}
+
+.full-width-btn {
+  width: 100%;
+  margin-top: 16px;
+}
+
+@media (max-width: 640px) {
+  .auctions-card {
+    padding: 18px;
+  }
+
+  .auctions-header h2 {
+    font-size: 26px;
+  }
+
+  .primary-btn,
+  .dark-btn,
+  .success-btn,
+  .secondary-btn {
+    width: 100%;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+  .header-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+}

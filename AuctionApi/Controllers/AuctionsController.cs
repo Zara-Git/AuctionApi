@@ -122,9 +122,11 @@ public class AuctionsController : ControllerBase
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == id);
 
-        if (auction == null) return NotFound("Auction not found.");
+        if (auction == null)
+            return NotFound("Auction not found.");
 
         var isOpen = !auction.IsDisabled && auction.StartDate <= now && auction.EndDate > now;
+
         if (!isOpen)
             return BadRequest("Bids are not available for closed auctions.");
 

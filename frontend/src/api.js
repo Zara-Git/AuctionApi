@@ -1,26 +1,34 @@
 const BASE_URL = "https://localhost:7041";
 
 export async function api(path, options = {}) {
-    const token = JSON.parse(localStorage.getItem("user") || "null")?.token;
+  const token = JSON.parse(localStorage.getItem("user") || "null")?.token;
 
-    const res = await fetch(`${BASE_URL}${path}`, {
-        ...options,
-        headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            ...(options.headers || {}),
-        },
-    });
+  const res = await fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers || {}),
+    },
+  });
 
-    const text = await res.text();
-    let data = null;
+  const text = await res.text();
+  let data;
 
-    try {
-        data = text ? JSON.parse(text) : null;
-    } catch {
-        data = text;
-    }
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = text;
+  }
 
-    if (!res.ok) throw new Error(data?.message || data || "Request failed");
-    return data;
+  if (!res.ok) {
+    const errorMessage =
+      typeof data === "string"
+        ? data
+        : data?.message || data?.title || "Something went wrong";
+
+    throw new Error(errorMessage);
+  }
+
+  return data;
 }

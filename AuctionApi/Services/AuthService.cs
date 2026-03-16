@@ -35,7 +35,7 @@ public class AuthService : IAuthService
 
         var exists = await _repo.EmailExistsAsync(email);
         if (exists)
-            throw new Exception("Email already exists.");
+            throw new ArgumentException("Email already exists.");
 
         var user = new User
         {
@@ -127,14 +127,13 @@ public class AuthService : IAuthService
         var issuer = _config["Jwt:Issuer"]!;
         var audience = _config["Jwt:Audience"]!;
         var expiresMinutes = int.Parse(_config["Jwt:ExpiresMinutes"] ?? "120");
-
         var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Name, user.Name),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.IsAdmin ? "Admin" : "User")
-        };
+{
+    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+    new Claim(ClaimTypes.Name, user.Name),
+    new Claim(ClaimTypes.Email, user.Email),
+    new Claim(ClaimTypes.Role, user.IsAdmin ? "Admin" : "User")
+}; ;
 
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
         var creds = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
